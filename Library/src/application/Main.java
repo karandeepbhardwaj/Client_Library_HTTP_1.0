@@ -5,7 +5,7 @@ import java.util.*;
 
 import configuration.*;
 
-public class client {
+public class Main {
 
     private static String URL = "";
     private static HashMap<String, String> headers = new HashMap<>();
