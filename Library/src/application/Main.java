@@ -70,9 +70,29 @@ public class Main {
                 System.out.println(Constants.INVALID);
         } else if (firstWord.equals("get")) {
 
+            if (url.length == 3) {
+                generatorobj.getRequest(attributesObj);
+            } else if (url.length == 4) {
+                generatorobj.verboseGetRequest(attributesObj);
+            } else {
+                if (url[2] == "-v") {
+                    int headerNumber = (url.length - 3) / 2;
+                    int startingIndex = 3;
+                    headersManager(url, headerNumber, startingIndex);
+                    generatorobj.getRequest(attributesObj);
+                }
+            }
+        }else if(firstWord.equals("post")){
+
         }
 
     }
+
+    private static void headersManager(String[] url, int headerNumber, int startingIndex) {
+
+
+    }
+
 
     public static void main(String[] args) throws IOException {
 
