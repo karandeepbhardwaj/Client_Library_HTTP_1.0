@@ -43,18 +43,19 @@ public class Main {
         }
     }
 
-    public static void parseConsoleCommand(String[] command) throws IOException {
+    public static void parseConsoleCommand(String[] args) throws IOException {
 
         Generator generatorobj = new Generator();
+        String[] command = args.clone();
         String[] url = {};
+
         if (Constants.SAVE_OUTPUT == 1) {
 
             OFileName = command[command.length - 1];
             attributesObj.setFileForHttpResponse(OFileName);
             url = Arrays.copyOf(command, command.length - 2);
         } else {
-            for (int i = 0; i < command.length; i++)
-                url[i] = command[i];
+            url = command.clone();
         }
 
         String firstWord = url[1];
@@ -85,7 +86,6 @@ public class Main {
         }else if(firstWord.equals("post")){
 
         }
-
     }
 
     private static void headersManager(String[] url, int headerNumber, int startingIndex) {
@@ -97,28 +97,26 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         attributesObj = new CAttributes();
-
         attributesObj.setPort(Constants.DEFAULT_PORT);
 
         Scanner sc = new Scanner(System.in);
 
-        String input = sc.nextLine();
-        String command = input.toLowerCase();
-        if (command != "help") {
+        String[] command = sc.nextLine().split(" ");
 
-            String[] inputs = command.split(" ");
+        if (!command[1].equals("help")) {
 
-            if (inputs[inputs.length - 2] == "-o") {
 
-                URL = inputs[inputs.length - 3];
-                Constants.SAVE_OUTPUT = 1;
-
-            } else {
-                URL = inputs[inputs.length - 1];
-            }
+//            if (inputs[inputs.length - 2] == "-o") {
+//
+//                URL = inputs[inputs.length - 3];
+//                Constants.SAVE_OUTPUT = 1;
+//
+//            } else {
+//                URL = inputs[inputs.length - 1];
+//            }
             parseURL(URL);
         }
-        parseConsoleCommand(input.split(" "));
+        parseConsoleCommand(command);
         sc.close();
     }
 }
