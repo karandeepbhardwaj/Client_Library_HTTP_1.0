@@ -32,14 +32,12 @@ public class Generator {
             if (attributesObj.getInlineData() != null) {
                 request += "Content-Length:" + attributesObj.getInlineData().length() + "\r\n";
             }
-
             request += "Connection: close\r\n";
             request += "\r\n";
 
             if (attributesObj.getInlineData() != null) {
                 request += attributesObj.getInlineData();
             }
-
             bufferWriter.write(request);
             bufferWriter.flush();
 

@@ -105,15 +105,13 @@ public class Main {
 
         if (!command[1].equals("help")) {
 
+            if (command[command.length - 2] == "-o") {
+                URL = command[command.length - 3];
+                Constants.SAVE_OUTPUT = 1;
 
-//            if (inputs[inputs.length - 2] == "-o") {
-//
-//                URL = inputs[inputs.length - 3];
-//                Constants.SAVE_OUTPUT = 1;
-//
-//            } else {
-//                URL = inputs[inputs.length - 1];
-//            }
+            } else {
+                URL = command[command.length - 1];
+            }
             parseURL(URL);
         }
         parseConsoleCommand(command);
