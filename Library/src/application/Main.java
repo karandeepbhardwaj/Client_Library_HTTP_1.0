@@ -8,11 +8,34 @@ import configuration.*;
 public class Main {
 
     private static String URL = "";
-    private static HashMap<String, String> headers = new HashMap<>();
-    ;
-    public static CAttributes attributesObj;
-    public static String OFileName = null;
+    private static String OFileName = null;
     public static String IFileName = null;
+    private static HashMap<String, String> headers = new HashMap<>();
+    public static CAttributes attributesObj;
+
+    public static void main(String[] args) throws IOException {
+
+        attributesObj = new CAttributes();
+        attributesObj.setPort(Constants.DEFAULT_PORT);
+
+        Scanner sc = new Scanner(System.in);
+
+        String[] command = sc.nextLine().split(" ");
+
+        if (!command[1].equals("help")) {
+
+            if (command[command.length - 2] == "-o") {
+                URL = command[command.length - 3];
+                Constants.SAVE_OUTPUT = 1;
+
+            } else {
+                URL = command[command.length - 1];
+            }
+            parseURL(URL);
+        }
+        parseConsoleCommand(command);
+        sc.close();
+    }
 
     public static void parseURL(String URL) {
 
@@ -103,31 +126,10 @@ public class Main {
 
     private static void headersManager(String[] url, int headerNumber, int startingIndex) {
         headers = new HashMap<>();
-
-    }
-
-
-    public static void main(String[] args) throws IOException {
-
-        attributesObj = new CAttributes();
-        attributesObj.setPort(Constants.DEFAULT_PORT);
-
-        Scanner sc = new Scanner(System.in);
-
-        String[] command = sc.nextLine().split(" ");
-
-        if (!command[1].equals("help")) {
-
-            if (command[command.length - 2] == "-o") {
-                URL = command[command.length - 3];
-                Constants.SAVE_OUTPUT = 1;
-
-            } else {
-                URL = command[command.length - 1];
-            }
-            parseURL(URL);
+        for(int i = 0; i< headerNumber; i++){
+            int urlPosition = startingIndex+i*2;
+            String[] keyValue = url[urlPosition].split(":");
+            headers.put(keyValue[0], keyValue[2]);
         }
-        parseConsoleCommand(command);
-        sc.close();
     }
 }
