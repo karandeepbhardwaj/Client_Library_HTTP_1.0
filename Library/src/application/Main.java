@@ -58,9 +58,9 @@ public class Main {
             url = command.clone();
         }
 
-        String firstWord = url[1];
+        String wordAfterHttpc = url[1];
 
-        if (firstWord.equals("help")) {
+        if (wordAfterHttpc.equals("help")) {
             if (url.length == 2)
                 System.out.println(Constants.HELP);
             else if (url.length == 3 && url[2].equals("get"))
@@ -69,7 +69,7 @@ public class Main {
                 System.out.println(Constants.HELP_POST);
             else
                 System.out.println(Constants.INVALID);
-        } else if (firstWord.equals("get")) {
+        } else if (wordAfterHttpc.equals("get")) {
 
             if (url.length == 3) {
                 generatorobj.getRequest(attributesObj);
@@ -83,8 +83,19 @@ public class Main {
                     generatorobj.getRequest(attributesObj);
                 }
             }
-        }else if(firstWord.equals("post")){
+        }else if(wordAfterHttpc.equals("post")){
+            if(url.length == 3){
+                generatorobj.postRequest(attributesObj);
+            }else if(url.length == 4){
+                generatorobj.verbosePostRequest(attributesObj);
+            }else{
+                String wordAfterPost = url[2];
+                if(wordAfterPost == "-v"){
+                    int headerNumber = 0;
+                    int startingIndex = 4;
 
+                }
+            }
         }
     }
 

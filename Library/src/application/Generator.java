@@ -72,10 +72,8 @@ public class Generator {
 
                 if (attributesObj.getFileForHttpResponse() != null) {
                     saveResponse(attributesObj.getFileForHttpResponse(), response);
-
                     write.write("\nRedirecting to another website... http://" + attributesObj.getHost()
                             + attributesObj.getPath() + "\n\n");
-
                 }
                 getRequest(attributesObj);
                 write.close();
@@ -123,5 +121,11 @@ public class Generator {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void postRequest(CAttributes attributesObj) {
+    }
+
+    public void verbosePostRequest(CAttributes attributesObj) {
     }
 }
