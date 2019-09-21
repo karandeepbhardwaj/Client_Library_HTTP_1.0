@@ -96,11 +96,13 @@ public class Main {
 
                 }
             }
+        }else{
+            System.out.println(Constants.INVALID);
         }
     }
 
     private static void headersManager(String[] url, int headerNumber, int startingIndex) {
-
+        headers = new HashMap<>();
 
     }
 
