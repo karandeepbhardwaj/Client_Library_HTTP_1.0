@@ -113,7 +113,7 @@ public class Generator {
     }
 
     private void addHeaders(HashMap<String, String> headers) {
-        // TODO Auto-generated method stub
+        // TODO Change the way the value is calculated in the loop.
         try {
             headers.forEach((key,value) -> {
                 request += key+": "+value+"\r\n";

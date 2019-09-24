@@ -116,7 +116,58 @@ public class Main {
                 if(wordAfterPost == "-v"){
                     int headerNumber = 0;
                     int startingIndex = 4;
+                    if(url[url.length-3].equals("-d")) {
+                        attributesObj.setInlineData(url[url.length-2]);
+                        headerNumber = (url.length-6)/2;
 
+                    }else if(url[url.length-3].equals("-f")) {
+                        IFileName = url[url.length-2];
+                        File file = new File(IFileName);
+                        BufferedReader br = new BufferedReader(new FileReader(file));
+                        StringBuilder input = new StringBuilder();
+                        String nextLine;
+                        while ((nextLine = br.readLine()) != null) {
+                            input.append(nextLine);
+                        }
+                        attributesObj.setInlineData(input.toString());
+                        br.close();
+                        headerNumber = (url.length-6)/2;
+                    }
+                    else if (url[url.length-3].equals("-h")) {
+                        headerNumber = (url.length-4)/2;
+                    }
+                    if(headerNumber > 0) {
+                        headersManager(url, headerNumber, startingIndex);
+                    }
+                    generatorobj.verbosePostRequest(attributesObj); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
+                }
+                else { 	//without verbose
+                    int numHeaders = 0;
+                    int startIndex = 3;
+                    if(url[url.length-3].equals("-d")) {
+                        attributesObj.setInlineData(url[url.length-2]);
+                        numHeaders = (url.length-5)/2;
+                    }
+                    else if(url[url.length-3].equals("-f")) {
+                        IFileName = url[url.length-2];
+                        File file = new File(IFileName);
+                        BufferedReader br = new BufferedReader(new FileReader(file));
+                        String input = "";
+                        String nextLine;
+                        while ((nextLine = br.readLine()) != null) {
+                            input+=nextLine;
+                        }
+                        attributesObj.setInlineData(input);
+                        br.close();
+                        numHeaders = (url.length-5)/2;
+                    }
+                    else if (url[url.length-3].equals("-h")) {
+                        numHeaders = (url.length-3)/2;
+                    }
+                    if(numHeaders > 0) {
+                        headersManager(url, numHeaders, startIndex);
+                    }
+                    generatorobj.postRequest(attributesObj); //command -> httpc post (-h key:value)* [-d] [-f] URL
                 }
             }
         }else{
