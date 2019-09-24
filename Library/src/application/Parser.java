@@ -15,6 +15,7 @@ public class Parser {
     private static String OFileName = null;
     private static String IFileName = null;
     private static CAttributes attributesObj;
+    private static Verbose verboseObj;
 
     public static void parseURL(String URL) {
 
@@ -76,7 +77,7 @@ public class Parser {
             if (url.length == 3) {
                 generatorobj.getRequest(attributesObj);
             } else if (url.length == 4) {
-                generatorobj.verboseGetRequest(attributesObj);
+                verboseObj.verboseGetRequest(attributesObj);
             } else {
                 if (url[2] == "-v") {
                     int headerNumber = (url.length - 3) / 2;
@@ -89,7 +90,7 @@ public class Parser {
             if (url.length == 3) {
                 generatorobj.postRequest(attributesObj);
             } else if (url.length == 4) {
-                generatorobj.verbosePostRequest(attributesObj);
+                verboseObj.verbosePostRequest(attributesObj);
             } else {
                 String wordAfterPost = url[2];
                 if (wordAfterPost == "-v") {
@@ -117,7 +118,7 @@ public class Parser {
                     if (headerNumber > 0) {
                         headersManager(url, headerNumber, startingIndex);
                     }
-                    generatorobj.verbosePostRequest(attributesObj);
+                    verboseObj.verbosePostRequest(attributesObj);
                 } else {
                     int numHeaders = 0;
                     int startIndex = 3;
@@ -151,7 +152,7 @@ public class Parser {
     }
 
     private static void headersManager(String[] url, int headerNumber, int startingIndex) {
-        HashMap<String, String> headers = new HashMap<>();
+        HashMap<String, String> headers = new HashMap<String, String>();
         for (int i = 0; i < headerNumber; i++) {
             int urlPosition = startingIndex + i * 2;
             String[] keyValue = url[urlPosition].split(":");
