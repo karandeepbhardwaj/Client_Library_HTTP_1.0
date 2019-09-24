@@ -139,9 +139,9 @@ public class Main {
                     if(headerNumber > 0) {
                         headersManager(url, headerNumber, startingIndex);
                     }
-                    generatorobj.verbosePostRequest(attributesObj); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
+                    generatorobj.verbosePostRequest(attributesObj);
                 }
-                else { 	//without verbose
+                else {
                     int numHeaders = 0;
                     int startIndex = 3;
                     if(url[url.length-3].equals("-d")) {
@@ -152,12 +152,12 @@ public class Main {
                         IFileName = url[url.length-2];
                         File file = new File(IFileName);
                         BufferedReader br = new BufferedReader(new FileReader(file));
-                        String input = "";
+                        StringBuilder input = new StringBuilder();
                         String nextLine;
                         while ((nextLine = br.readLine()) != null) {
-                            input+=nextLine;
+                            input.append(nextLine);
                         }
-                        attributesObj.setInlineData(input);
+                        attributesObj.setInlineData(input.toString());
                         br.close();
                         numHeaders = (url.length-5)/2;
                     }
@@ -167,7 +167,7 @@ public class Main {
                     if(numHeaders > 0) {
                         headersManager(url, numHeaders, startIndex);
                     }
-                    generatorobj.postRequest(attributesObj); //command -> httpc post (-h key:value)* [-d] [-f] URL
+                    generatorobj.postRequest(attributesObj);
                 }
             }
         }else{
