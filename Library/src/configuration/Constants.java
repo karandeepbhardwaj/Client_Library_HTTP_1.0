@@ -2,15 +2,15 @@ package configuration;
 
 public class Constants {
 
-    public static final int DEFAULT_PORT =80;
+    public static final int DEFAULT_PORT = 80;
     public static int SAVE_OUTPUT = 0;
     public static final String HELP = "httpc is a curl-like application but supports HTTP protocol only. "
             + "\nUsage:\t" +
             "httpc command [arguments]\n\n" +
             "The commands are:\n" +
-            "\nget\t\texecutes a HTTP GET request and prints the response. "+
-            "\npost\texecutes a HTTP POST request and prints the response. "+
-            "\nhelp\tprints this screen.\n"+
+            "\nget\t\texecutes a HTTP GET request and prints the response. " +
+            "\npost\texecutes a HTTP POST request and prints the response. " +
+            "\nhelp\tprints this screen.\n" +
             "\nUse \"httpc help [command]\" for more information about a command.";
 
     public static final String INVALID = "INVALID COMMAND LINE ARGUMENTS\n\n"
