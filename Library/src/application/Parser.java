@@ -23,6 +23,7 @@ public class Parser {
         String path = null;
         String host = null;
 
+        System.out.println(url);
         if (url.startsWith("http://")) {
             url = url.substring(7);
         } else if (url.startsWith("https://")) {
