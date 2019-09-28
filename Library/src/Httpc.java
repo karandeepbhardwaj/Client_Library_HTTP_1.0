@@ -4,16 +4,11 @@ import java.util.*;
 
 public class Httpc {
 
+    private static final int DEFAULT_PORT = 80;
     private static String URL;
     private static String outputFileName;
     private static String inputFileName;
-    private static HashMap<String, String> headers = null;
-    private static GetSet getSetObj;
     private static String request;
-    private static boolean fileOpen = false;
-    private static BufferedWriter write;
-    private static final int DEFAULT_PORT = 80;
-    private static boolean storeOutputToFile = false;
     private static final String HELP = "httpc is a curl-like application but supports HTTP protocol only.\n"
             + "Usage:\nhttpc command [arguments]\n"
             + "The commands are:\n"
@@ -36,6 +31,11 @@ public class Httpc {
             + "-d string\tAssociates an inline data to the body HTTP POST request.\n"
             + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
             + "Either [-d] or [-f] can be used but not both.";
+    private static HashMap<String, String> headers = null;
+    private static boolean fileOpen = false;
+    private static boolean storeOutputToFile = false;
+    private static BufferedWriter write;
+    private static GetSet getSetObj;
 
     public static void main(String[] args) throws IOException {
 
