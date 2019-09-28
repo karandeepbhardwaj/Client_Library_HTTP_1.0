@@ -39,6 +39,10 @@ public class Httpc {
 
     public static void main(String[] input) throws IOException {
 
+        String testFun = "httpc get http://httpbin.org/status/418";
+        String testHelp = "httpc help";
+        String testHelpGet = "httpc help get";
+        String testHelpPost = "httpc help post";
 
         String testGet = "httpc get 'http://httpbin.org/get?course=networking&assignment=1'";
         String testVerboseGet = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1'";
@@ -46,7 +50,7 @@ public class Httpc {
         String testPost = "httpc post -h Content-Type:application/json -d '{\"Assignment\":1}' http://httpbin.org/post";
         String testRedirection = "httpc get https://www.amazon.com/";
 
-        String testCommand = testRedirection;
+        String testCommand = testFun;
 
         input = testCommand.split("\\s+");
 
