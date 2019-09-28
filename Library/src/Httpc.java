@@ -37,61 +37,65 @@ public class Httpc {
     private static BufferedWriter write;
     private static GetSet getSetObj;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] input) throws IOException {
+
+
+        String testGet = "httpc get 'http://httpbin.org/get?course=networking&assignment=1'";
+        String testVerboseGet = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1'";
+        String testVerboseWithFile = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt";
+        String testPost = "httpc post -h Content-Type:application/json -d '{\"Assignment\":1}' http://httpbin.org/post";
+        String testRedirection = "httpc get https://www.amazon.com/";
+
+        String testCommand = testRedirection;
+
+        input = testCommand.split("\\s+");
 
         getSetObj = new GetSet();
         getSetObj.setPort(DEFAULT_PORT);
 
-        if (!args[1].equals("help")) {
+        if (!input[1].equals("help")) {
 
             //check if output is to be stored into file
-            if (args[args.length - 2].equals("-o")) {
+            if (input[input.length - 2].equals("-o")) {
                 //getting URL i.e. the third last element of the command line arguments
-                URL = args[args.length - 3];
+                URL = input[input.length - 3];
                 storeOutputToFile = true;
             } else {
                 //getting URL i.e. the last element of the command line arguments
-                URL = args[args.length - 1];
+                URL = input[input.length - 1];
             }
             //split URL into host, path & query
-            parseURL(URL);
+
+            String str = URL;
+            if (str.startsWith("http://"))
+                str = str.substring(7);
+            else if (str.startsWith("https://"))
+                str = str.substring(8);
+            else if (str.startsWith("'https://"))
+                str = str.substring(9, str.length() - 1);
+            else if (str.startsWith("'http://"))
+                str = str.substring(8, str.length() - 1);
+            else if (str.startsWith("\'"))
+                str = str.substring(1, str.length() - 1);
+
+            int index1 = str.indexOf('/');
+
+            if (index1 != -1) {
+                getSetObj.setHost(str.substring(0, index1));
+                getSetObj.setPath(str.substring(index1));
+            } else {
+                getSetObj.setHost(URL);
+            }
         }
         //parse arguments
-        parseCommand(args);
-    }
 
-    private static void parseURL(String URL) {
-        String str = URL;
-
-        if (str.startsWith("http://"))
-            str = str.substring(7);
-        else if (str.startsWith("https://"))
-            str = str.substring(8);
-        else if (str.startsWith("'https://"))
-            str = str.substring(9, str.length() - 1);
-        else if (str.startsWith("'http://"))
-            str = str.substring(8, str.length() - 1);
-        else if (str.startsWith("\'"))
-            str = str.substring(1, str.length() - 1);
-
-        int index1 = str.indexOf('/');
-
-        if (index1 != -1) {
-            getSetObj.setHost(str.substring(0, index1));
-            getSetObj.setPath(str.substring(index1));
-        } else {
-            getSetObj.setHost(URL);
-        }
-    }
-
-    private static void parseCommand(String[] cmdArgs) throws IOException {
         String[] args;
         if (storeOutputToFile) {
-            outputFileName = cmdArgs[cmdArgs.length - 1];
+            outputFileName = input[input.length - 1];
             getSetObj.setFileForHttpResponse(outputFileName);
-            args = Arrays.copyOf(cmdArgs, cmdArgs.length - 2);
+            args = Arrays.copyOf(input, input.length - 2);
         } else {
-            args = cmdArgs.clone();
+            args = input.clone();
         }
         String command = args[1];
         switch (command) {
@@ -141,12 +145,12 @@ public class Httpc {
                             inputFileName = args[args.length - 2];
                             File file = new File(inputFileName);
                             BufferedReader br = new BufferedReader(new FileReader(file));
-                            String input = "";
+                            String bufferInput = "";
                             String nextLine;
                             while ((nextLine = br.readLine()) != null) {
-                                input += nextLine;
+                                bufferInput += nextLine;
                             }
-                            getSetObj.setInlineData(input);
+                            getSetObj.setInlineData(bufferInput);
                             br.close();
                             numHeaders = (args.length - 6) / 2;
                         } else if (args[args.length - 3].equals("-h")) {
@@ -156,26 +160,34 @@ public class Httpc {
                             processHeaders(args, numHeaders, startIndex);
                         }
                         postRequestWithVerbose(getSetObj); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
-                    } else {    //without verbose
+                    } else {
+                        //without verbose
                         int numHeaders = 0;
                         int startIndex = 3;
-                        if (args[args.length - 3].equals("-d")) {
-                            getSetObj.setInlineData(args[args.length - 2]);
-                            numHeaders = (args.length - 5) / 2;
-                        } else if (args[args.length - 3].equals("-f")) {
-                            inputFileName = args[args.length - 2];
-                            File file = new File(inputFileName);
-                            BufferedReader br = new BufferedReader(new FileReader(file));
-                            String input = "";
-                            String nextLine;
-                            while ((nextLine = br.readLine()) != null) {
-                                input += nextLine;
-                            }
-                            getSetObj.setInlineData(input);
-                            br.close();
-                            numHeaders = (args.length - 5) / 2;
-                        } else if (args[args.length - 3].equals("-h")) {
-                            numHeaders = (args.length - 3) / 2;
+                        switch (args[args.length - 3]) {
+
+                            case "-d":
+                                getSetObj.setInlineData(args[args.length - 2]);
+                                numHeaders = (args.length - 5) / 2;
+                                break;
+                            case "-f":
+                                inputFileName = args[args.length - 2];
+                                File file = new File(inputFileName);
+                                BufferedReader br = new BufferedReader(new FileReader(file));
+                                String bufferInput1 = "";
+                                String nextLine;
+                                while ((nextLine = br.readLine()) != null) {
+                                    bufferInput1 += nextLine;
+                                }
+                                getSetObj.setInlineData(bufferInput1);
+                                br.close();
+                                numHeaders = (args.length - 5) / 2;
+                                break;
+                            case "-h":
+                                numHeaders = (args.length - 3) / 2;
+                                break;
+                            default:
+                                break;
                         }
                         if (numHeaders > 0) {
                             processHeaders(args, numHeaders, startIndex);
@@ -190,7 +202,7 @@ public class Httpc {
         }
     }
 
-    private static void processHeaders(String args[], int numHeaders, int startIndex) {
+    private static void processHeaders(String[] args, int numHeaders, int startIndex) {
         headers = new HashMap<>();
         for (int i = 0; i < numHeaders; i++) {
             int argNumber = startIndex + i * 2;
