@@ -37,6 +37,30 @@ public class Httpc {
             + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
             + "Either [-d] or [-f] can be used but not both.";
 
+    public static void main(String[] args) throws IOException {
+
+        getSetObj = new GetSet();
+        getSetObj.setPort(DEFAULT_PORT);
+
+        if (!args[1].equals("help")) {
+
+            //check if output is to be stored into file
+            if (args[args.length - 2].equals("-o")) {
+                //getting URL i.e. the third last element of the command line arguments
+                URL = args[args.length - 3];
+                storeOutputToFile = true;
+            } else {
+                //getting URL i.e. the last element of the command line arguments
+                URL = args[args.length - 1];
+            }
+            //split URL into host, path & query
+            parseURL(URL);
+        }
+
+        //parse arguments
+        parseCommand(args);
+    }
+
     private static void parseURL(String URL) {
         String str = URL;
 
@@ -168,41 +192,17 @@ public class Httpc {
         }
     }
 
-    public static void processHeaders(String args[], int numHeaders, int startIndex) {
+    private static void processHeaders(String args[], int numHeaders, int startIndex) {
         headers = new HashMap<>();
         for (int i = 0; i < numHeaders; i++) {
             int argNumber = startIndex + i * 2;
-            String keyValue[] = args[argNumber].split(":");
+            String[] keyValue = args[argNumber].split(":");
             headers.put(keyValue[0], keyValue[1]);
         }
         getSetObj.setHeaders(headers);
     }
 
-    public static void main(String[] args) throws IOException {
-
-        getSetObj = new GetSet();
-        getSetObj.setPort(DEFAULT_PORT);
-
-        if (!args[1].equals("help")) {
-
-            //check if output is to be stored into file
-            if (args[args.length - 2].equals("-o")) {
-                //getting URL i.e. the third last element of the command line arguments
-                URL = args[args.length - 3];
-                storeOutputToFile = true;
-            } else {
-                //getting URL i.e. the last element of the command line arguments
-                URL = args[args.length - 1];
-            }
-            //split URL into host, path & query
-            parseURL(URL);
-        }
-
-        //parse arguments
-        parseCommand(args);
-    }
-
-    public static void getRequest(GetSet getSetObj) throws IOException {
+    private static void getRequest(GetSet getSetObj) throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
@@ -267,7 +267,7 @@ public class Httpc {
         }
     }
 
-    public static void getRequestWithVerbose(GetSet getSetObj) throws IOException {
+    private static void getRequestWithVerbose(GetSet getSetObj) throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
@@ -327,7 +327,8 @@ public class Httpc {
     }
 
     private static void redirect(GetSet getSetObj, String response) {
-        System.out.println(response+"\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
+        System.out.println(response +
+                "\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
         int index1 = response.indexOf("Location");
         int index2 = response.indexOf("\n", index1);
         String newURL = response.substring(index1 + 10, index2);
