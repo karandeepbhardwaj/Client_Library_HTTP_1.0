@@ -56,7 +56,6 @@ public class Httpc {
             //split URL into host, path & query
             parseURL(URL);
         }
-
         //parse arguments
         parseCommand(args);
     }
@@ -94,7 +93,6 @@ public class Httpc {
         } else {
             args = cmdArgs.clone();
         }
-
         String command = args[1];
         switch (command) {
             case "help":
@@ -267,97 +265,6 @@ public class Httpc {
         }
     }
 
-    private static void getRequestWithVerbose(GetSet getSetObj) throws IOException {
-
-        Socket socket = null;
-        BufferedWriter bufferWriter = null;
-        BufferedReader bufferReader = null;
-        try {
-            socket = new Socket(getSetObj.getHost(), getSetObj.getPort());
-            bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-            request = "";
-
-            // building a GET request
-            request += "GET " + getSetObj.getPath() + " HTTP/1.0\r\n";
-            request += "Host: " + getSetObj.getHost() + "\r\n";
-            // adding headers
-            if (getSetObj.getHeaders() != null) {
-                addHeaders(getSetObj.getHeaders());
-            }
-            request += "\r\n";
-
-            bufferWriter.write(request);
-            bufferWriter.flush();
-
-            bufferReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            String response = "";
-            String line;
-
-            // Getting response from host
-            while ((line = bufferReader.readLine()) != null) {
-
-                response += line + "\n";
-            }
-
-            if (response.isEmpty() || (!response.substring(9, 12).equals("302") && !response.substring(9, 12).equals("301"))) {
-                // print response in console
-                System.out.println(response);
-                // save response in external file
-                if (getSetObj.getFileForHttpResponse() != null) {
-                    saveResponse(getSetObj.getFileForHttpResponse(), response);
-                    write.close();
-                }
-            } else {
-                //redirecting
-                redirect(getSetObj, response);
-                if (getSetObj.getFileForHttpResponse() != null) {
-                    saveResponse(getSetObj.getFileForHttpResponse(), response);
-                    write.write("\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
-                }
-                getRequestWithVerbose(getSetObj);
-                write.close();
-            }
-        } finally {
-            request = null;
-            bufferReader.close();
-            bufferWriter.close();
-            socket.close();
-        }
-    }
-
-    private static void redirect(GetSet getSetObj, String response) {
-        System.out.println(response +
-                "\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
-        int index1 = response.indexOf("Location");
-        int index2 = response.indexOf("\n", index1);
-        String newURL = response.substring(index1 + 10, index2);
-
-        //check if URL starts with http:// or http://
-        if (newURL.startsWith("http://"))
-            newURL = newURL.substring(7);
-        else if (newURL.startsWith("https://"))
-            newURL = newURL.substring(8);
-        else if (newURL.startsWith("'https://"))
-            newURL = newURL.substring(9, newURL.length() - 1);
-        else if (newURL.startsWith("'http://"))
-            newURL = newURL.substring(8, newURL.length() - 1);
-
-        //checking first occurence of '/' in the string without http:// or https://
-        int index3 = newURL.indexOf('/');
-        if (index3 == -1)
-            index3 = newURL.indexOf(".com") + 4;
-
-        //splitting the string into host, path based on index of '/'
-        if (index3 != -1) {
-            getSetObj.setHost(newURL.substring(0, index3));
-            getSetObj.setPath(newURL.substring(index3));
-        } else {
-            getSetObj.setHost(newURL);
-            getSetObj.setPath("/");
-        }
-    }
-
     private static void postRequest(GetSet getSetObj) throws IOException {
 
         Socket socket = null;
@@ -422,6 +329,65 @@ public class Httpc {
         }
     }
 
+    private static void getRequestWithVerbose(GetSet getSetObj) throws IOException {
+
+        Socket socket = null;
+        BufferedWriter bufferWriter = null;
+        BufferedReader bufferReader = null;
+        try {
+            socket = new Socket(getSetObj.getHost(), getSetObj.getPort());
+            bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+            request = "";
+
+            // building a GET request
+            request += "GET " + getSetObj.getPath() + " HTTP/1.0\r\n";
+            request += "Host: " + getSetObj.getHost() + "\r\n";
+            // adding headers
+            if (getSetObj.getHeaders() != null) {
+                addHeaders(getSetObj.getHeaders());
+            }
+            request += "\r\n";
+
+            bufferWriter.write(request);
+            bufferWriter.flush();
+
+            bufferReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String response = "";
+            String line;
+
+            // Getting response from host
+            while ((line = bufferReader.readLine()) != null) {
+
+                response += line + "\n";
+            }
+
+            if (response.isEmpty() || (!response.substring(9, 12).equals("302") && !response.substring(9, 12).equals("301"))) {
+                // print response in console
+                System.out.println(response);
+                // save response in external file
+                if (getSetObj.getFileForHttpResponse() != null) {
+                    saveResponse(getSetObj.getFileForHttpResponse(), response);
+                    write.close();
+                }
+            } else {
+                //redirecting
+                redirect(getSetObj, response);
+                if (getSetObj.getFileForHttpResponse() != null) {
+                    saveResponse(getSetObj.getFileForHttpResponse(), response);
+                    write.write("\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
+                }
+                getRequestWithVerbose(getSetObj);
+                write.close();
+            }
+        } finally {
+            request = null;
+            bufferReader.close();
+            bufferWriter.close();
+            socket.close();
+        }
+    }
+
     private static void postRequestWithVerbose(GetSet getSetObj) throws IOException {
 
         Socket socket = null;
@@ -476,6 +442,38 @@ public class Httpc {
             bufferReader.close();
             bufferWriter.close();
             socket.close();
+        }
+    }
+
+    private static void redirect(GetSet getSetObj, String response) {
+        System.out.println(response +
+                "\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
+        int index1 = response.indexOf("Location");
+        int index2 = response.indexOf("\n", index1);
+        String newURL = response.substring(index1 + 10, index2);
+
+        //check if URL starts with http:// or http://
+        if (newURL.startsWith("http://"))
+            newURL = newURL.substring(7);
+        else if (newURL.startsWith("https://"))
+            newURL = newURL.substring(8);
+        else if (newURL.startsWith("'https://"))
+            newURL = newURL.substring(9, newURL.length() - 1);
+        else if (newURL.startsWith("'http://"))
+            newURL = newURL.substring(8, newURL.length() - 1);
+
+        //checking first occurence of '/' in the string without http:// or https://
+        int index3 = newURL.indexOf('/');
+        if (index3 == -1)
+            index3 = newURL.indexOf(".com") + 4;
+
+        //splitting the string into host, path based on index of '/'
+        if (index3 != -1) {
+            getSetObj.setHost(newURL.substring(0, index3));
+            getSetObj.setPath(newURL.substring(index3));
+        } else {
+            getSetObj.setHost(newURL);
+            getSetObj.setPath("/");
         }
     }
 
