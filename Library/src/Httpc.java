@@ -9,21 +9,32 @@ public class Httpc {
     private static String outputFileName;
     private static String inputFileName;
     private static String request;
-    private static final String HELP = "httpc is a curl-like application but supports HTTP protocol only.\n"
+    private static final String HELP =
+
+            "httpc is a curl-like application but supports HTTP protocol only.\n"
             + "Usage:\nhttpc command [arguments]\n"
             + "The commands are:\n"
             + "get\texecutes a HTTP GET request and prints the response.\n"
             + "post\texecutes a HTTP POST request and prints the response.\n"
             + "help\tprints this screen.\n\n"
             + "Use \"httpc help [command]\" for more information about a command.";
-    private static final String INVALID = "INVALID COMMAND LINE ARGUMENTS\n\n"
+
+    private static final String INVALID =
+
+            "INVALID COMMAND LINE ARGUMENTS\n\n"
             + "For information about usage type \"httpc help\"";
-    private static final String GETHELP = "httpc help get\n" +
+
+    private static final String GETHELP =
+
+            "httpc help get\n" +
             "usage: httpc get [-v] [-h key:value] URL\n"
             + "Get executes a HTTP GET request for a given URL.\n"
             + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
             + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.";
-    private static final String POSTHELP = "httpc help post\n"
+
+    private static final String POSTHELP =
+
+            "httpc help post\n"
             + "usage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n"
             + "Post executes a HTTP POST request for a given URL with inline data or from file.\n"
             + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
@@ -31,6 +42,7 @@ public class Httpc {
             + "-d string\tAssociates an inline data to the body HTTP POST request.\n"
             + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
             + "Either [-d] or [-f] can be used but not both.";
+
     private static HashMap<String, String> headers = null;
     private static boolean fileOpen = false;
     private static boolean storeOutputToFile = false;
@@ -39,18 +51,25 @@ public class Httpc {
 
     public static void main(String[] input) throws IOException {
 
+        Scanner sc = new Scanner(System.in);
+        String inputFromConsole = sc.nextLine();
+
+        //Test Cases:
+        //----------------------------------------------------------------------------------------
+
         String testFun = "httpc get http://httpbin.org/status/418";
         String testHelp = "httpc help";
         String testHelpGet = "httpc help get";
         String testHelpPost = "httpc help post";
-
         String testGet = "httpc get 'http://httpbin.org/get?course=networking&assignment=1'";
         String testVerboseGet = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1'";
         String testVerboseWithFile = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt";
         String testPost = "httpc post -h Content-Type:application/json -d '{\"Assignment\":1}' http://httpbin.org/post";
         String testRedirection = "httpc get https://www.amazon.com/";
+        //----------------------------------------------------------------------------------------
 
-        String testCommand = testFun;
+//      String testCommand = testPost;
+        String testCommand = inputFromConsole;
 
         input = testCommand.split("\\s+");
 
@@ -59,17 +78,12 @@ public class Httpc {
 
         if (!input[1].equals("help")) {
 
-            //check if output is to be stored into file
             if (input[input.length - 2].equals("-o")) {
-                //getting URL i.e. the third last element of the command line arguments
                 URL = input[input.length - 3];
                 storeOutputToFile = true;
             } else {
-                //getting URL i.e. the last element of the command line arguments
                 URL = input[input.length - 1];
             }
-            //split URL into host, path & query
-
             String str = URL;
             if (str.startsWith("http://"))
                 str = str.substring(7);
@@ -91,8 +105,6 @@ public class Httpc {
                 getSetObj.setHost(URL);
             }
         }
-        //parse arguments
-
         String[] args;
         if (storeOutputToFile) {
             outputFileName = input[input.length - 1];
