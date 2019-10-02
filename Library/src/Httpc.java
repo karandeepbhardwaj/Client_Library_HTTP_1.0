@@ -7,17 +7,21 @@ import java.util.*;
 public class Httpc {
 
     private static int port;
+    private static final int DEFAULT_PORT = 80;
+    private static int redirectCount = 0;
     private static String host;
     private static String path = "/";
     private static String inlineData;
     private static String httpRequestFile;
     private static String httpResponseFile;
-    private static final int DEFAULT_PORT = 80;
     private static String URL;
     private static String outputFileName;
     private static String inputFileName;
     private static String request;
-    private static int redirectCount = 0;
+    private static HashMap<String, String> headers = null;
+    private static boolean fileOpen = false;
+    private static boolean storeOutputToFile = false;
+    private static BufferedWriter write;
     private static final String HELP =
 
             "httpc is a curl-like application but supports HTTP protocol only.\n"
@@ -51,11 +55,6 @@ public class Httpc {
 
             "INVALID COMMAND LINE ARGUMENTS\n\n"
                     + "For information about usage type \"httpc help\"";
-
-    private static HashMap<String, String> headers = null;
-    private static boolean fileOpen = false;
-    private static boolean storeOutputToFile = false;
-    private static BufferedWriter write;
 
     public static void main(String[] input) throws IOException {
 
