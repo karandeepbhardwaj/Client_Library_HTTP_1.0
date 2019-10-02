@@ -1,0 +1,28 @@
+HTTP/1.1 200 OK
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Origin: *
+Content-Type: application/json
+Date: Wed, 02 Oct 2019 04:03:37 GMT
+Referrer-Policy: no-referrer-when-downgrade
+Server: nginx
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+Content-Length: 284
+Connection: Close
+
+{
+  "args": {}, 
+  "data": "{\"Assignment\":\"1\"}", 
+  "files": {}, 
+  "form": {}, 
+  "headers": {
+    "Content-Length": "18", 
+    "Host": "httpbin.org"
+  }, 
+  "json": {
+    "Assignment": "1"
+  }, 
+  "origin": "96.20.248.103, 96.20.248.103", 
+  "url": "https://httpbin.org/post"
+}

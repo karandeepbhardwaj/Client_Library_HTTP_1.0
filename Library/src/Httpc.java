@@ -1,14 +1,23 @@
+import com.sun.tools.javah.Util;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
 public class Httpc {
 
+    private static int port;
+    private static String host;
+    private static String path = "/";
+    private static String inlineData;
+    private static String fileForHttpRequest;
+    private static String fileForHttpResponse;
     private static final int DEFAULT_PORT = 80;
     private static String URL;
     private static String outputFileName;
     private static String inputFileName;
     private static String request;
+    private static int redirectCount =0;
     private static final String HELP =
 
             "httpc is a curl-like application but supports HTTP protocol only.\n"
@@ -47,12 +56,10 @@ public class Httpc {
     private static boolean fileOpen = false;
     private static boolean storeOutputToFile = false;
     private static BufferedWriter write;
-    private static GetSet getSetObj;
-
     public static void main(String[] input) throws IOException {
 
         Scanner sc = new Scanner(System.in);
-        String inputFromConsole = sc.nextLine();
+//        String inputFromConsole = sc.nextLine();
 
         //Test Cases:
         //----------------------------------------------------------------------------------------
@@ -61,22 +68,32 @@ public class Httpc {
         String testHelp = "httpc help";
         String testHelpGet = "httpc help get";
         String testHelpPost = "httpc help post";
+
         String testGet = "httpc get 'http://httpbin.org/get?course=networking&assignment=1'";
         String testVerboseGet = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1'";
-        String testVerboseWithFile = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1' -o hello.txt";
-        String testPost = "httpc post -h Content-Type:application/json -d '{\"Assignment\":1}' http://httpbin.org/post";
-        String testRedirection = "httpc get https://www.amazon.com/";
+        String testGetVerboseJson = "httpc get -v -h Content-Type:application/json 'http://httpbin.org/get?course=networking&assignment=1'";
+
+        String testPostSimple = "httpc post http://httpbin.org/post";
+        String testPostH = "httpc post -h Content-Type:application/json -d '{\"Assignment\":1}' http://httpbin.org/post";
+        String testPostF = "httpc post -h Content-Type:application/json -f \"\\Users\\karandeep\\IdeaProjects\\Client_Library_HTTP_1.0\\input.txt\" http://httpbin.org/post";
+        String testPostVerbose = "httpc post -v -h Content-Type:application/json -f \"\\Users\\karandeep\\IdeaProjects\\Client_Library_HTTP_1.0\\input.txt\" http://httpbin.org/post";
+
+
+        String testRedirection = "httpc get -v amazon.com -o save.txt";
+        String testOutputToFile = "httpc get -v 'http://httpbin.org/get?course=networking&assignment=1' -o save.txt";
+        String testOutputToFile2 = "httpc post -v -d {\"Assignment\":\"1\"} http://httpbin.org/post -o save2.txt";
+
+
         //----------------------------------------------------------------------------------------
 
-//      String testCommand = testPost;
-        String testCommand = inputFromConsole;
+//      String testCommand = testGet;
+        String testCommand = testOutputToFile2;
 
         input = testCommand.split("\\s+");
 
-        getSetObj = new GetSet();
-        getSetObj.setPort(DEFAULT_PORT);
+        port = DEFAULT_PORT;
 
-        if (!input[1].equals("help")) {
+        if (input[1] != "help") {
 
             if (input[input.length - 2].equals("-o")) {
                 URL = input[input.length - 3];
@@ -84,6 +101,7 @@ public class Httpc {
             } else {
                 URL = input[input.length - 1];
             }
+
             String str = URL;
             if (str.startsWith("http://"))
                 str = str.substring(7);
@@ -99,16 +117,16 @@ public class Httpc {
             int index1 = str.indexOf('/');
 
             if (index1 != -1) {
-                getSetObj.setHost(str.substring(0, index1));
-                getSetObj.setPath(str.substring(index1));
+                host =(str.substring(0, index1));
+                path = (str.substring(index1));
             } else {
-                getSetObj.setHost(URL);
+                host =(URL);
             }
         }
         String[] args;
         if (storeOutputToFile) {
             outputFileName = input[input.length - 1];
-            getSetObj.setFileForHttpResponse(outputFileName);
+            fileForHttpResponse = (outputFileName);
             args = Arrays.copyOf(input, input.length - 2);
         } else {
             args = input.clone();
@@ -127,34 +145,34 @@ public class Httpc {
                 break;
             case "get":
                 if (args.length == 3)
-                    getRequest(getSetObj);                //command -> httpc get URL
+                    getRequest();                //command -> httpc get URL
                 else if (args.length == 4)
-                    getRequestWithVerbose(getSetObj);    //command -> httpc get -v URL
+                    getRequestWithVerbose();    //command -> httpc get -v URL
                 else {
                     if (args[2].equals("-v")) {    //with verbose
                         int numHeaders = (args.length - 4) / 2;
                         int startIndex = 4;
                         processHeaders(args, numHeaders, startIndex);
-                        getRequestWithVerbose(getSetObj); //command -> httpc get -v (-h key:value)* URL
+                        getRequestWithVerbose(); //command -> httpc get -v (-h key:value)* URL
                     } else {    //without verbose
                         int numHeaders = (args.length - 3) / 2;
                         int startIndex = 3;
                         processHeaders(args, numHeaders, startIndex);
-                        getRequest(getSetObj); //command -> httpc get (-h key:value)* URL
+                        getRequest(); //command -> httpc get (-h key:value)* URL
                     }
                 }
                 break;
             case "post":
                 if (args.length == 3)
-                    postRequest(getSetObj);                //command -> httpc post URL
+                    postRequest();                //command -> httpc post URL
                 else if (args.length == 4)
-                    postRequestWithVerbose(getSetObj);    //command -> httpc post -v URL
+                    postRequestWithVerbose();    //command -> httpc post -v URL
                 else {
                     if (args[2].equals("-v")) {    //with verbose
                         int numHeaders = 0;
                         int startIndex = 4;
                         if (args[args.length - 3].equals("-d")) {
-                            getSetObj.setInlineData(args[args.length - 2]);
+                            inlineData = (args[args.length - 2]);
                             numHeaders = (args.length - 6) / 2;
 
                         } else if (args[args.length - 3].equals("-f")) {
@@ -166,7 +184,7 @@ public class Httpc {
                             while ((nextLine = br.readLine()) != null) {
                                 bufferInput += nextLine;
                             }
-                            getSetObj.setInlineData(bufferInput);
+                            inlineData = (bufferInput);
                             br.close();
                             numHeaders = (args.length - 6) / 2;
                         } else if (args[args.length - 3].equals("-h")) {
@@ -175,7 +193,7 @@ public class Httpc {
                         if (numHeaders > 0) {
                             processHeaders(args, numHeaders, startIndex);
                         }
-                        postRequestWithVerbose(getSetObj); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
+                        postRequestWithVerbose(); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
                     } else {
                         //without verbose
                         int numHeaders = 0;
@@ -183,7 +201,7 @@ public class Httpc {
                         switch (args[args.length - 3]) {
 
                             case "-d":
-                                getSetObj.setInlineData(args[args.length - 2]);
+                                inlineData = (args[args.length - 2]);
                                 numHeaders = (args.length - 5) / 2;
                                 break;
                             case "-f":
@@ -195,7 +213,7 @@ public class Httpc {
                                 while ((nextLine = br.readLine()) != null) {
                                     bufferInput1 += nextLine;
                                 }
-                                getSetObj.setInlineData(bufferInput1);
+                                inlineData = (bufferInput1);
                                 br.close();
                                 numHeaders = (args.length - 5) / 2;
                                 break;
@@ -208,7 +226,7 @@ public class Httpc {
                         if (numHeaders > 0) {
                             processHeaders(args, numHeaders, startIndex);
                         }
-                        postRequest(getSetObj); //command -> httpc post (-h key:value)* [-d] [-f] URL
+                        postRequest(); //command -> httpc post (-h key:value)* [-d] [-f] URL
                     }
                 }
                 break;
@@ -225,25 +243,25 @@ public class Httpc {
             String[] keyValue = args[argNumber].split(":");
             headers.put(keyValue[0], keyValue[1]);
         }
-        getSetObj.setHeaders(headers);
+        headers =(headers);
     }
 
-    private static void getRequest(GetSet getSetObj) throws IOException {
+    private static void getRequest() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
         BufferedReader bufferReader = null;
         try {
-            socket = new Socket(getSetObj.getHost(), getSetObj.getPort());
+            socket = new Socket(host, port);
             bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             request = "";
 
             // building a GET request
-            request += "GET " + getSetObj.getPath() + " HTTP/1.0\r\n";
-            request += "Host: " + getSetObj.getHost() + "\r\n";
+            request += "GET " + path + " HTTP/1.0\r\n";
+            request += "Host: " + host + "\r\n";
             // adding headers
-            if (getSetObj.getHeaders() != null) {
-                addHeaders(getSetObj.getHeaders());
+            if (headers != null) {
+                addHeaders(headers);
             }
             request += "\r\n";
 
@@ -271,18 +289,18 @@ public class Httpc {
                 // print response in console
                 System.out.println(response);
                 // save response in external file
-                if (getSetObj.getFileForHttpResponse() != null) {
-                    saveResponse(getSetObj.getFileForHttpResponse(), response);
+                if (fileForHttpResponse != null) {
+                    saveResponse(fileForHttpResponse, response);
                     write.close();
                 }
             } else {
                 //redirecting
-                redirect(getSetObj, response);
-                if (getSetObj.getFileForHttpResponse() != null) {
-                    saveResponse(getSetObj.getFileForHttpResponse(), response);
-                    write.write("\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
+                redirect(response);
+                if (fileForHttpResponse != null) {
+                    saveResponse(fileForHttpResponse, response);
+                    write.write("\nRedirecting to... http://" + host + path + "\n\n");
                 }
-                getRequest(getSetObj);
+                getRequest();
                 write.close();
             }
         } finally {
@@ -293,32 +311,32 @@ public class Httpc {
         }
     }
 
-    private static void postRequest(GetSet getSetObj) throws IOException {
+    private static void postRequest() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
         BufferedReader bufferReader = null;
         try {
-            socket = new Socket(getSetObj.getHost(), getSetObj.getPort());
+            socket = new Socket(host, port);
             bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             request = "";
 
             // building a POST request
-            request += "POST " + getSetObj.getPath() + " HTTP/1.0\r\n";
-            request += "Host: " + getSetObj.getHost() + "\r\n";
+            request += "POST " + path + " HTTP/1.0\r\n";
+            request += "Host: " + host + "\r\n";
             // adding headers
-            if (getSetObj.getHeaders() != null) {
-                addHeaders(getSetObj.getHeaders());
+            if (headers != null) {
+                addHeaders(headers);
             }
             // setting up the length of inline data
-            if (getSetObj.getInlineData() != null) {
-                request += "Content-Length:" + getSetObj.getInlineData().length() + "\r\n";
+            if (inlineData != null) {
+                request += "Content-Length:" + inlineData.length() + "\r\n";
             }
             request += "Connection: close\r\n";
             request += "\r\n";
             // adding inline data
-            if (getSetObj.getInlineData() != null) {
-                request += getSetObj.getInlineData();
+            if (inlineData != null) {
+                request += inlineData;
             }
 
             bufferWriter.write(request);
@@ -345,8 +363,8 @@ public class Httpc {
             // print response in console
             System.out.println(response);
             // save response in external file
-            if (getSetObj.getFileForHttpResponse() != null) {
-                saveResponse(getSetObj.getFileForHttpResponse(), response);
+            if (fileForHttpResponse != null) {
+                saveResponse(fileForHttpResponse, response);
                 write.close();
             }
         } finally {
@@ -357,22 +375,22 @@ public class Httpc {
         }
     }
 
-    private static void getRequestWithVerbose(GetSet getSetObj) throws IOException {
+    private static void getRequestWithVerbose() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
         BufferedReader bufferReader = null;
         try {
-            socket = new Socket(getSetObj.getHost(), getSetObj.getPort());
+            socket = new Socket(host, port);
             bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             request = "";
 
             // building a GET request
-            request += "GET " + getSetObj.getPath() + " HTTP/1.0\r\n";
-            request += "Host: " + getSetObj.getHost() + "\r\n";
+            request += "GET " + path + " HTTP/1.0\r\n";
+            request += "Host: " + host + "\r\n";
             // adding headers
-            if (getSetObj.getHeaders() != null) {
-                addHeaders(getSetObj.getHeaders());
+            if (headers != null) {
+                addHeaders(headers);
             }
             request += "\r\n";
 
@@ -394,18 +412,18 @@ public class Httpc {
                 // print response in console
                 System.out.println(response);
                 // save response in external file
-                if (getSetObj.getFileForHttpResponse() != null) {
-                    saveResponse(getSetObj.getFileForHttpResponse(), response);
+                if (fileForHttpResponse != null) {
+                    saveResponse(fileForHttpResponse, response);
                     write.close();
                 }
             } else {
                 //redirecting
-                redirect(getSetObj, response);
-                if (getSetObj.getFileForHttpResponse() != null) {
-                    saveResponse(getSetObj.getFileForHttpResponse(), response);
-                    write.write("\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
+                redirect(response);
+                if (fileForHttpResponse != null) {
+                    saveResponse(fileForHttpResponse, response);
+                    write.write("\nRedirecting to... http://" + host + path + "\n\n");
                 }
-                getRequestWithVerbose(getSetObj);
+                getRequestWithVerbose();
                 write.close();
             }
         } finally {
@@ -416,32 +434,32 @@ public class Httpc {
         }
     }
 
-    private static void postRequestWithVerbose(GetSet getSetObj) throws IOException {
+    private static void postRequestWithVerbose() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
         BufferedReader bufferReader = null;
         try {
-            socket = new Socket(getSetObj.getHost(), getSetObj.getPort());
+            socket = new Socket(host, port);
             bufferWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             request = "";
 
             // building a POST request
-            request += "POST " + getSetObj.getPath() + " HTTP/1.0\r\n";
-            request += "Host: " + getSetObj.getHost() + "\r\n";
+            request += "POST " + path + " HTTP/1.0\r\n";
+            request += "Host: " + host + "\r\n";
             // adding headers
-            if (getSetObj.getHeaders() != null) {
-                addHeaders(getSetObj.getHeaders());
+            if (headers != null) {
+                addHeaders(headers);
             }
             // setting up the length of inline data
-            if (getSetObj.getInlineData() != null) {
-                request += "Content-Length:" + getSetObj.getInlineData().length() + "\r\n";
+            if (inlineData != null) {
+                request += "Content-Length:" + inlineData.length() + "\r\n";
             }
             request += "Connection: close\r\n";
             request += "\r\n";
             // adding inline data
-            if (getSetObj.getInlineData() != null) {
-                request += getSetObj.getInlineData();
+            if (inlineData != null) {
+                request += inlineData;
             }
 
             bufferWriter.write(request);
@@ -461,8 +479,8 @@ public class Httpc {
             // print response in console
             System.out.println(response);
             // save response in external file
-            if (getSetObj.getFileForHttpResponse() != null) {
-                saveResponse(getSetObj.getFileForHttpResponse(), response);
+            if (fileForHttpResponse != null) {
+                saveResponse(fileForHttpResponse, response);
                 write.close();
             }
         } finally {
@@ -473,35 +491,41 @@ public class Httpc {
         }
     }
 
-    private static void redirect(GetSet getSetObj, String response) {
-        System.out.println(response +
-                "\nRedirecting to... http://" + getSetObj.getHost() + getSetObj.getPath() + "\n\n");
-        int index1 = response.indexOf("Location");
-        int index2 = response.indexOf("\n", index1);
-        String newURL = response.substring(index1 + 10, index2);
+    private static void redirect(String response) {
+        if (redirectCount < 5) {
+            System.out.println(response +
+                    "\nRedirecting to... https://" + host + path + "\n\n");
+            int index1 = response.indexOf("Location");
+            int index2 = response.indexOf("\n", index1);
+            String newURL = response.substring(index1 + 10, index2);
 
-        //check if URL starts with http:// or http://
-        if (newURL.startsWith("http://"))
-            newURL = newURL.substring(7);
-        else if (newURL.startsWith("https://"))
-            newURL = newURL.substring(8);
-        else if (newURL.startsWith("'https://"))
-            newURL = newURL.substring(9, newURL.length() - 1);
-        else if (newURL.startsWith("'http://"))
-            newURL = newURL.substring(8, newURL.length() - 1);
+            //check if URL starts with http:// or http://
+            if (newURL.startsWith("http://"))
+                newURL = newURL.substring(7);
+            else if (newURL.startsWith("https://"))
+                newURL = newURL.substring(8);
+            else if (newURL.startsWith("'https://"))
+                newURL = newURL.substring(9, newURL.length() - 1);
+            else if (newURL.startsWith("'http://"))
+                newURL = newURL.substring(8, newURL.length() - 1);
 
-        //checking first occurence of '/' in the string without http:// or https://
-        int index3 = newURL.indexOf('/');
-        if (index3 == -1)
-            index3 = newURL.indexOf(".com") + 4;
+            //checking first occurence of '/' in the string without http:// or https://
+            int index3 = newURL.indexOf('/');
+            if (index3 == -1)
+                index3 = newURL.indexOf(".com") + 4;
 
-        //splitting the string into host, path based on index of '/'
-        if (index3 != -1) {
-            getSetObj.setHost(newURL.substring(0, index3));
-            getSetObj.setPath(newURL.substring(index3));
-        } else {
-            getSetObj.setHost(newURL);
-            getSetObj.setPath("/");
+            //splitting the string into host, path based on index of '/'
+            if (index3 != -1) {
+                host =(newURL.substring(0, index3));
+                path = (newURL.substring(index3));
+            } else {
+                host =(newURL);
+                path = ("/");
+            }
+            redirectCount++;
+        }else{
+            System.out.println("Redirected 5 times, now stopping.");
+            System.exit(0);
         }
     }
 
