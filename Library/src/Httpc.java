@@ -10,52 +10,53 @@ public class Httpc {
     private static String host;
     private static String path = "/";
     private static String inlineData;
-    private static String fileForHttpRequest;
-    private static String fileForHttpResponse;
+    private static String httpRequestFile;
+    private static String httpResponseFile;
     private static final int DEFAULT_PORT = 80;
     private static String URL;
     private static String outputFileName;
     private static String inputFileName;
     private static String request;
-    private static int redirectCount =0;
+    private static int redirectCount = 0;
     private static final String HELP =
 
             "httpc is a curl-like application but supports HTTP protocol only.\n"
-            + "Usage:\nhttpc command [arguments]\n"
-            + "The commands are:\n"
-            + "get\texecutes a HTTP GET request and prints the response.\n"
-            + "post\texecutes a HTTP POST request and prints the response.\n"
-            + "help\tprints this screen.\n\n"
-            + "Use \"httpc help [command]\" for more information about a command.";
-
-    private static final String INVALID =
-
-            "INVALID COMMAND LINE ARGUMENTS\n\n"
-            + "For information about usage type \"httpc help\"";
+                    + "Usage:\nhttpc command [arguments]\n"
+                    + "The commands are:\n"
+                    + "get\texecutes a HTTP GET request and prints the response.\n"
+                    + "post\texecutes a HTTP POST request and prints the response.\n"
+                    + "help\tprints this screen.\n\n"
+                    + "Use \"httpc help [command]\" for more information about a command.";
 
     private static final String GETHELP =
 
             "httpc help get\n" +
-            "usage: httpc get [-v] [-h key:value] URL\n"
-            + "Get executes a HTTP GET request for a given URL.\n"
-            + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
-            + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.";
+                    "usage: httpc get [-v] [-h key:value] URL\n"
+                    + "Get executes a HTTP GET request for a given URL.\n"
+                    + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
+                    + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.";
 
     private static final String POSTHELP =
 
             "httpc help post\n"
-            + "usage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n"
-            + "Post executes a HTTP POST request for a given URL with inline data or from file.\n"
-            + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
-            + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.\n"
-            + "-d string\tAssociates an inline data to the body HTTP POST request.\n"
-            + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
-            + "Either [-d] or [-f] can be used but not both.";
+                    + "usage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n"
+                    + "Post executes a HTTP POST request for a given URL with inline data or from file.\n"
+                    + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
+                    + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.\n"
+                    + "-d string\tAssociates an inline data to the body HTTP POST request.\n"
+                    + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
+                    + "Either [-d] or [-f] can be used but not both.";
+
+    private static final String INVALID =
+
+            "INVALID COMMAND LINE ARGUMENTS\n\n"
+                    + "For information about usage type \"httpc help\"";
 
     private static HashMap<String, String> headers = null;
     private static boolean fileOpen = false;
     private static boolean storeOutputToFile = false;
     private static BufferedWriter write;
+
     public static void main(String[] input) throws IOException {
 
         Scanner sc = new Scanner(System.in);
@@ -117,16 +118,16 @@ public class Httpc {
             int index1 = str.indexOf('/');
 
             if (index1 != -1) {
-                host =(str.substring(0, index1));
+                host = (str.substring(0, index1));
                 path = (str.substring(index1));
             } else {
-                host =(URL);
+                host = (URL);
             }
         }
         String[] args;
         if (storeOutputToFile) {
             outputFileName = input[input.length - 1];
-            fileForHttpResponse = (outputFileName);
+            httpResponseFile = (outputFileName);
             args = Arrays.copyOf(input, input.length - 2);
         } else {
             args = input.clone();
@@ -145,28 +146,28 @@ public class Httpc {
                 break;
             case "get":
                 if (args.length == 3)
-                    getRequest();                //command -> httpc get URL
+                    requestGet();                //command -> httpc get URL
                 else if (args.length == 4)
-                    getRequestWithVerbose();    //command -> httpc get -v URL
+                    verboseGetRequest();    //command -> httpc get -v URL
                 else {
                     if (args[2].equals("-v")) {    //with verbose
                         int numHeaders = (args.length - 4) / 2;
                         int startIndex = 4;
-                        processHeaders(args, numHeaders, startIndex);
-                        getRequestWithVerbose(); //command -> httpc get -v (-h key:value)* URL
+                        headerManager(args, numHeaders, startIndex);
+                        verboseGetRequest(); //command -> httpc get -v (-h key:value)* URL
                     } else {    //without verbose
                         int numHeaders = (args.length - 3) / 2;
                         int startIndex = 3;
-                        processHeaders(args, numHeaders, startIndex);
-                        getRequest(); //command -> httpc get (-h key:value)* URL
+                        headerManager(args, numHeaders, startIndex);
+                        requestGet(); //command -> httpc get (-h key:value)* URL
                     }
                 }
                 break;
             case "post":
                 if (args.length == 3)
-                    postRequest();                //command -> httpc post URL
+                    requestPost();                //command -> httpc post URL
                 else if (args.length == 4)
-                    postRequestWithVerbose();    //command -> httpc post -v URL
+                    verbosePostRequest();    //command -> httpc post -v URL
                 else {
                     if (args[2].equals("-v")) {    //with verbose
                         int numHeaders = 0;
@@ -191,9 +192,9 @@ public class Httpc {
                             numHeaders = (args.length - 4) / 2;
                         }
                         if (numHeaders > 0) {
-                            processHeaders(args, numHeaders, startIndex);
+                            headerManager(args, numHeaders, startIndex);
                         }
-                        postRequestWithVerbose(); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
+                        verbosePostRequest(); //command -> httpc post -v (-h key:value)* [-d] [-f] URL
                     } else {
                         //without verbose
                         int numHeaders = 0;
@@ -224,9 +225,9 @@ public class Httpc {
                                 break;
                         }
                         if (numHeaders > 0) {
-                            processHeaders(args, numHeaders, startIndex);
+                            headerManager(args, numHeaders, startIndex);
                         }
-                        postRequest(); //command -> httpc post (-h key:value)* [-d] [-f] URL
+                        requestPost(); //command -> httpc post (-h key:value)* [-d] [-f] URL
                     }
                 }
                 break;
@@ -236,17 +237,7 @@ public class Httpc {
         }
     }
 
-    private static void processHeaders(String[] args, int numHeaders, int startIndex) {
-        headers = new HashMap<>();
-        for (int i = 0; i < numHeaders; i++) {
-            int argNumber = startIndex + i * 2;
-            String[] keyValue = args[argNumber].split(":");
-            headers.put(keyValue[0], keyValue[1]);
-        }
-        headers =(headers);
-    }
-
-    private static void getRequest() throws IOException {
+    private static void requestGet() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
@@ -261,7 +252,7 @@ public class Httpc {
             request += "Host: " + host + "\r\n";
             // adding headers
             if (headers != null) {
-                addHeaders(headers);
+                headerToRequest(headers);
             }
             request += "\r\n";
 
@@ -289,18 +280,18 @@ public class Httpc {
                 // print response in console
                 System.out.println(response);
                 // save response in external file
-                if (fileForHttpResponse != null) {
-                    saveResponse(fileForHttpResponse, response);
+                if (httpResponseFile != null) {
+                    saveToFile(httpResponseFile, response);
                     write.close();
                 }
             } else {
                 //redirecting
                 redirect(response);
-                if (fileForHttpResponse != null) {
-                    saveResponse(fileForHttpResponse, response);
+                if (httpResponseFile != null) {
+                    saveToFile(httpResponseFile, response);
                     write.write("\nRedirecting to... http://" + host + path + "\n\n");
                 }
-                getRequest();
+                requestGet();
                 write.close();
             }
         } finally {
@@ -311,7 +302,7 @@ public class Httpc {
         }
     }
 
-    private static void postRequest() throws IOException {
+    private static void requestPost() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
@@ -326,7 +317,7 @@ public class Httpc {
             request += "Host: " + host + "\r\n";
             // adding headers
             if (headers != null) {
-                addHeaders(headers);
+                headerToRequest(headers);
             }
             // setting up the length of inline data
             if (inlineData != null) {
@@ -363,8 +354,8 @@ public class Httpc {
             // print response in console
             System.out.println(response);
             // save response in external file
-            if (fileForHttpResponse != null) {
-                saveResponse(fileForHttpResponse, response);
+            if (httpResponseFile != null) {
+                saveToFile(httpResponseFile, response);
                 write.close();
             }
         } finally {
@@ -375,7 +366,7 @@ public class Httpc {
         }
     }
 
-    private static void getRequestWithVerbose() throws IOException {
+    private static void verboseGetRequest() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
@@ -390,7 +381,7 @@ public class Httpc {
             request += "Host: " + host + "\r\n";
             // adding headers
             if (headers != null) {
-                addHeaders(headers);
+                headerToRequest(headers);
             }
             request += "\r\n";
 
@@ -412,18 +403,18 @@ public class Httpc {
                 // print response in console
                 System.out.println(response);
                 // save response in external file
-                if (fileForHttpResponse != null) {
-                    saveResponse(fileForHttpResponse, response);
+                if (httpResponseFile != null) {
+                    saveToFile(httpResponseFile, response);
                     write.close();
                 }
             } else {
                 //redirecting
                 redirect(response);
-                if (fileForHttpResponse != null) {
-                    saveResponse(fileForHttpResponse, response);
+                if (httpResponseFile != null) {
+                    saveToFile(httpResponseFile, response);
                     write.write("\nRedirecting to... http://" + host + path + "\n\n");
                 }
-                getRequestWithVerbose();
+                verboseGetRequest();
                 write.close();
             }
         } finally {
@@ -434,7 +425,7 @@ public class Httpc {
         }
     }
 
-    private static void postRequestWithVerbose() throws IOException {
+    private static void verbosePostRequest() throws IOException {
 
         Socket socket = null;
         BufferedWriter bufferWriter = null;
@@ -449,7 +440,7 @@ public class Httpc {
             request += "Host: " + host + "\r\n";
             // adding headers
             if (headers != null) {
-                addHeaders(headers);
+                headerToRequest(headers);
             }
             // setting up the length of inline data
             if (inlineData != null) {
@@ -479,8 +470,8 @@ public class Httpc {
             // print response in console
             System.out.println(response);
             // save response in external file
-            if (fileForHttpResponse != null) {
-                saveResponse(fileForHttpResponse, response);
+            if (httpResponseFile != null) {
+                saveToFile(httpResponseFile, response);
                 write.close();
             }
         } finally {
@@ -516,20 +507,29 @@ public class Httpc {
 
             //splitting the string into host, path based on index of '/'
             if (index3 != -1) {
-                host =(newURL.substring(0, index3));
+                host = (newURL.substring(0, index3));
                 path = (newURL.substring(index3));
             } else {
-                host =(newURL);
+                host = (newURL);
                 path = ("/");
             }
             redirectCount++;
-        }else{
+        } else {
             System.out.println("Redirected 5 times, now stopping.");
             System.exit(0);
         }
     }
+    
+    private static void headerManager(String[] args, int numHeaders, int startIndex) {
+        headers = new HashMap<>();
+        for (int i = 0; i < numHeaders; i++) {
+            int argNumber = startIndex + i * 2;
+            String[] keyValue = args[argNumber].split(":");
+            headers.put(keyValue[0], keyValue[1]);
+        }
+    }
 
-    private static void addHeaders(HashMap<String, String> headers) {
+    private static void headerToRequest(HashMap<String, String> headers) {
         try {
             headers.forEach((key, value) -> {
                 request += key + ": " + value + "\r\n";
@@ -539,9 +539,9 @@ public class Httpc {
         }
     }
 
-    private static void saveResponse(String fileForHttpResponse, String response) throws IOException {
+    private static void saveToFile(String httpResponseFile, String response) throws IOException {
         if (!fileOpen) {
-            write = new BufferedWriter(new FileWriter(new File(fileForHttpResponse)));
+            write = new BufferedWriter(new FileWriter(new File(httpResponseFile)));
             fileOpen = true;
         }
         try {
