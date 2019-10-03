@@ -12,7 +12,6 @@ public class Httpc {
     private static String host;
     private static String path = "/";
     private static String inlineData;
-    private static String httpRequestFile;
     private static String httpResponseFile;
     private static String URL;
     private static String outputFileName;
@@ -22,39 +21,6 @@ public class Httpc {
     private static boolean fileOpen = false;
     private static boolean storeOutputToFile = false;
     private static BufferedWriter write;
-    private static final String HELP =
-
-            "httpc is a curl-like application but supports HTTP protocol only.\n"
-                    + "Usage:\nhttpc command [arguments]\n"
-                    + "The commands are:\n"
-                    + "get\texecutes a HTTP GET request and prints the response.\n"
-                    + "post\texecutes a HTTP POST request and prints the response.\n"
-                    + "help\tprints this screen.\n\n"
-                    + "Use \"httpc help [command]\" for more information about a command.";
-
-    private static final String GETHELP =
-
-            "httpc help get\n" +
-                    "usage: httpc get [-v] [-h key:value] URL\n"
-                    + "Get executes a HTTP GET request for a given URL.\n"
-                    + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
-                    + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.";
-
-    private static final String POSTHELP =
-
-            "httpc help post\n"
-                    + "usage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n"
-                    + "Post executes a HTTP POST request for a given URL with inline data or from file.\n"
-                    + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
-                    + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.\n"
-                    + "-d string\tAssociates an inline data to the body HTTP POST request.\n"
-                    + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
-                    + "Either [-d] or [-f] can be used but not both.";
-
-    private static final String INVALID =
-
-            "INVALID COMMAND LINE ARGUMENTS\n\n"
-                    + "For information about usage type \"httpc help\"";
 
     public static void main(String[] input) throws IOException {
 
@@ -135,13 +101,31 @@ public class Httpc {
         switch (command) {
             case "help":
                 if (args.length == 2)
-                    System.out.println(HELP);                    //command -> httpc help
+                    System.out.println("httpc is a curl-like application but supports HTTP protocol only.\n"
+                            + "Usage:\nhttpc command [arguments]\n"
+                            + "The commands are:\n"
+                            + "get\texecutes a HTTP GET request and prints the response.\n"
+                            + "post\texecutes a HTTP POST request and prints the response.\n"
+                            + "help\tprints this screen.\n\n"
+                            + "Use \"httpc help [command]\" for more information about a command.");                    //command -> httpc help
                 else if (args.length == 3 && args[2].equals("get"))
-                    System.out.println(GETHELP);                //command -> httpc help get
+                    System.out.println("httpc help get\n" +
+                            "usage: httpc get [-v] [-h key:value] URL\n"
+                            + "Get executes a HTTP GET request for a given URL.\n"
+                            + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
+                            + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.");                //command -> httpc help get
                 else if (args.length == 3 && args[2].equals("post"))
-                    System.out.println(POSTHELP);                //command -> httpc help post
+                    System.out.println("httpc help post\n"
+                            + "usage: httpc post [-v] [-h key:value] [-d inline-data] [-f file] URL\n"
+                            + "Post executes a HTTP POST request for a given URL with inline data or from file.\n"
+                            + "-v\tPrints the detail of the response such as protocol, status, and headers.\n"
+                            + "-h key:value\tAssociates headers to HTTP Request with the format 'key:value'.\n"
+                            + "-d string\tAssociates an inline data to the body HTTP POST request.\n"
+                            + "-f file\tAssociates the content of a file to the body HTTP POST request.\n\n"
+                            + "Either [-d] or [-f] can be used but not both.");                //command -> httpc help post
                 else
-                    System.out.println(INVALID);                //Invalid Command
+                    System.out.println("INVALID COMMAND LINE ARGUMENTS\n\n"
+                            + "For information about usage type \"httpc help\"");                //Invalid Command
                 break;
             case "get":
                 if (args.length == 3)
@@ -231,7 +215,8 @@ public class Httpc {
                 }
                 break;
             default:
-                System.out.println(INVALID);
+                System.out.println("INVALID COMMAND LINE ARGUMENTS\n\n"
+                        + "For information about usage type \"httpc help\"");
                 break;
         }
     }
