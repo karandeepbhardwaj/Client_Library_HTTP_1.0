@@ -229,6 +229,28 @@ public class Httpc {
         }
     }
 
+    public static void addHeaders(HashMap<String, String> headers) {
+        try {
+            headers.forEach((key, value) -> {
+                request += key + ": " + value + "\r\n";
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveResponse(String httpResponseFile, String response) throws IOException {
+        if (!fileOpen) {
+            write = new BufferedWriter(new FileWriter(new File(httpResponseFile)));
+            fileOpen = true;
+        }
+        try {
+            write.write(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void requestGet() throws IOException {
 
         Socket socket = null;
@@ -475,27 +497,6 @@ public class Httpc {
             bufferReader.close();
             bufferWriter.close();
             socket.close();
-        }
-    }
-    public static void addHeaders(HashMap<String, String> headers) {
-        try {
-            headers.forEach((key, value) -> {
-                request += key + ": " + value + "\r\n";
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void saveResponse(String httpResponseFile, String response) throws IOException {
-        if (!fileOpen) {
-            write = new BufferedWriter(new FileWriter(new File(httpResponseFile)));
-            fileOpen = true;
-        }
-        try {
-            write.write(response);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
